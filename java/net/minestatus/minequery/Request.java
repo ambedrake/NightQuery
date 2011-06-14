@@ -1,5 +1,9 @@
 package net.minestatus.minequery;
 
+
+
+
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -81,18 +85,48 @@ public final class Request extends Thread {
 		// Handle a standard Minequery request.
 		if (request.equalsIgnoreCase("QUERY")) {
 			Minequery m = getMinequery();
-
+                        
+                        // Phrase Out the Online Player list and World they are on
 			String[] playerList = new String[m.getServer().getOnlinePlayers().length];
 			for (int i = 0; i < m.getServer().getOnlinePlayers().length; i++) {
 				playerList[i] = m.getServer().getOnlinePlayers()[i].getName();
 			}
-
-			// Build the response.
-			StringBuilder resp = new StringBuilder();
+                        String[] playerWList = new String[m.getServer().getOnlinePlayers().length];
+			for (int i = 0; i < m.getServer().getOnlinePlayers().length; i++) {
+				playerWList[i] = m.getServer().getOnlinePlayers()[i].getWorld().getName();
+			}
+                        
+                        //Prase out the Plugin List with Version Numbers
+                        String[] pluginName = new String[m.getServer().getPluginManager().getPlugins().length];
+			for (int i = 0; i < m.getServer().getPluginManager().getPlugins().length; i++) {
+				pluginName[i] = m.getServer().getPluginManager().getPlugins()[i].getDescription().getName();
+			}
+                        String[] pluginVer = new String[m.getServer().getPluginManager().getPlugins().length];
+			for (int i = 0; i < m.getServer().getPluginManager().getPlugins().length; i++) {
+				pluginVer[i] = m.getServer().getPluginManager().getPlugins()[i].getDescription().getVersion();
+			}
+                        
+                        //Seprate out the version Numbers 
+			String sv=m.getServer().getVersion();
+                        int start=sv.lastIndexOf("-b")+2;
+                        int end=sv.lastIndexOf("jnks");
+                        String bBuild=sv.substring(start, end);
+                        start=sv.lastIndexOf("MC: ")+4;
+                        end=sv.lastIndexOf(")");
+                        String cBuild=sv.substring(start, end);
+			
+                        // Build the response.
+                        
+                        StringBuilder resp = new StringBuilder();
 			resp.append("SERVERPORT " + m.getServerPort() + "\n");
+                        resp.append("SVER "+bBuild+ "\n");
+                        resp.append("CVER "+cBuild+ "\n");
 			resp.append("PLAYERCOUNT " + m.getServer().getOnlinePlayers().length + "\n");
 			resp.append("MAXPLAYERS " + m.getMaxPlayers() + "\n");
 			resp.append("PLAYERLIST " + Arrays.toString(playerList) + "\n");
+                        resp.append("PLAYERWORLDLIST " + Arrays.toString(playerWList) + "\n");
+                        resp.append("PLUGINNAMELIST " + Arrays.toString(pluginName) + "\n");
+                        resp.append("PLUGINVERSIONLIST " + Arrays.toString(pluginVer) + "\n");
 
 			// Send the response.
 			DataOutputStream out = new DataOutputStream(socket.getOutputStream());
@@ -102,11 +136,20 @@ public final class Request extends Thread {
 		// Handle a request, respond in JSON format.
 		if (request.equalsIgnoreCase("QUERY_JSON")) {
 			Minequery m = getMinequery();
+                        String sv=m.getServer().getVersion();
+                        int start=sv.lastIndexOf("-b")+2;
+                        int end=sv.lastIndexOf("jnks");
+                        String bBuild=sv.substring(start, end);
+                        start=sv.lastIndexOf("MC: ")+4;
+                        end=sv.lastIndexOf(")");
+                        String cBuild=sv.substring(start, end);
 
 			// Build the JSON response.
 			StringBuilder resp = new StringBuilder();
 			resp.append("{");
 			resp.append("\"serverPort\":").append(m.getServerPort()).append(",");
+                        resp.append("\"serverVersion\":").append(bBuild).append(",");
+                        resp.append("\"clientVersion\":").append(cBuild).append(",");
 			resp.append("\"playerCount\":").append(m.getServer().getOnlinePlayers().length).append(",");
 			resp.append("\"maxPlayers\":").append(m.getMaxPlayers()).append(",");
 			resp.append("\"playerList\":");
