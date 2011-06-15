@@ -136,14 +136,27 @@ public final class Request extends Thread {
 		// Handle a request, respond in JSON format.
 		if (request.equalsIgnoreCase("QUERY_JSON")) {
 			Minequery m = getMinequery();
-                        String sv=m.getServer().getVersion();
+                        
+                        
+                        
+                        //Prase out the Plugin List with Version Numbers
+                        String[] pluginName = new String[m.getServer().getPluginManager().getPlugins().length];
+			for (int i = 0; i < m.getServer().getPluginManager().getPlugins().length; i++) {
+				pluginName[i] = m.getServer().getPluginManager().getPlugins()[i].getDescription().getName();
+			}
+                        String[] pluginVer = new String[m.getServer().getPluginManager().getPlugins().length];
+			for (int i = 0; i < m.getServer().getPluginManager().getPlugins().length; i++) {
+				pluginVer[i] = m.getServer().getPluginManager().getPlugins()[i].getDescription().getVersion();
+			}
+                        
+                        //Seprate out the version Numbers 
+			String sv=m.getServer().getVersion();
                         int start=sv.lastIndexOf("-b")+2;
                         int end=sv.lastIndexOf("jnks");
                         String bBuild=sv.substring(start, end);
                         start=sv.lastIndexOf("MC: ")+4;
                         end=sv.lastIndexOf(")");
                         String cBuild=sv.substring(start, end);
-
 			// Build the JSON response.
 			StringBuilder resp = new StringBuilder();
 			resp.append("{");
@@ -165,6 +178,45 @@ public final class Request extends Thread {
 			}
 
 			resp.append("]");
+                        resp.append("\"playerWorld\":");
+			resp.append("[");
+
+			// Iterate through the players.
+			count = 0;
+			for (Player player : m.getServer().getOnlinePlayers()) {
+				resp.append("\"" + player.getWorld().getName() + "\"");
+				if (++count < m.getServer().getOnlinePlayers().length) {
+					resp.append(",");
+				}
+			}
+
+			resp.append("]");
+                        resp.append("\"PluginName\":");
+			resp.append("[");
+
+			// Iterate through the players.
+			//int count = 0;
+			for (String s : pluginName) {
+				resp.append("\"" + s + "\"");
+					resp.append(",");
+			}
+
+			resp.append("]");
+			
+                        resp.append("\"PluginVer\":");
+			resp.append("[");
+
+			// Iterate through the players.
+			//int count = 0;
+			for (String s : pluginVer) {
+				resp.append("\"" + s + "\"");
+					resp.append(",");
+				
+			}
+
+			resp.append("]");
+			
+			
 			resp.append("}\n");
 
 			// Send the JSON response.
